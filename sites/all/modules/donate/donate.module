@@ -42,8 +42,9 @@ function generate_ps_code(){
 	$code = uniqid();
 	// $email = $_POST['email'];
 	$email = "uc@gmail.com";
+	$amount = 7777;
 	// Insert Into Database
-	$o_exist = db_query("INSERT INTO `donate_codes` (`id`, `code`, `email`) VALUES (NULL, '".$code."', '".$email."')");
+	$o_exist = db_query("INSERT INTO `donate_codes` (`id`, `code`, `email`, `amount`) VALUES (NULL, '".$code."', '".$email."', '".$amount."')");
 	
 	echo $code;
 }
