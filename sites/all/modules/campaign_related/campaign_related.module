@@ -1,0 +1,7 @@
+<?php
+/**
+ * @file
+ * Code for the Campaign Related feature.
+ */
+
+include_once 'campaign_related.features.inc';

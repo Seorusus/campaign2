@@ -1,0 +1,13 @@
+diff --git a/commentaccess.module b/commentaccess.module
+index 48ed58c..b20ee5a 100644
+--- a/commentaccess.module
++++ b/commentaccess.module
+@@ -245,7 +245,7 @@ function commentaccess_query_comment_filter_alter(QueryAlterableInterface $query
+     && (user_access("approve comments on own $node->type") || user_access("administer comments on own $node->type"))) {
+     $conditions =& $query->conditions();
+     foreach ($conditions as $key => &$condition) {
+-      if ($condition['field'] == 'c.status' && $condition['value'] == COMMENT_PUBLISHED) {
++      if (isset($condition['field']) && isset($condition['value']) && $condition['field'] == 'c.status' && $condition['value'] == COMMENT_PUBLISHED) {
+         unset($conditions[$key]);
+       }
+     }

@@ -1,0 +1,17 @@
+<?php
+
+
+function progressive_cms_install() {
+  variable_set('site_404', 'page-404-bg');
+  $value = file_get_contents(drupal_get_path('module', 'progressive_cms') . '/progressive_layoutbuilder_import/progressive_cms_layout_builder_settings.php');
+  //variable_set('nikadevs_cms_layout_progressive', $value);
+  //variable_set('nikadevs_cms_layout_progressive_sub', $value);
+  db_update('variable')->fields(array('value' => $value))->condition('name', 'nikadevs_cms_layout_progressive_sub')->execute();
+  db_update('variable')->fields(array('value' => $value))->condition('name', 'nikadevs_cms_layout_progressive')->execute();
+  drupal_set_message('Layouts for Builder imported.');
+}
+
+function progressive_cms_uninstall() {
+  variable_del('nikadevs_cms_layout_progressive');
+  variable_del('nikadevs_cms_layout_progressive_sub');
+}

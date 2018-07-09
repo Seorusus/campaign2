@@ -1,0 +1,48 @@
+<?php
+
+/**
+ * @file
+ * Flag module install/schema/update hooks.
+ */
+
+/**
+ * Implements hook_schema().
+ */
+function nd_visualshortcodes_schema() {
+  $schema = array();
+
+  $schema['nd_visualshortcodes_saved'] = array(
+    'description' => 'Saved shortcodes.',
+    'fields' => array(
+      'id' => array(
+        'description' => 'The unique ID for this particular shortcode.',
+        'type' => 'serial',
+        'size' => 'small',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+      ),
+      'name' => array(
+        'type' => 'varchar',
+        'length' => '128',
+        'not null' => TRUE,
+        'default' => '',
+      ),
+      'code' => array(
+        'type' => 'text',
+        'not null' => FALSE,
+      ),
+    ),
+    'primary key' => array('id'),
+    'unique keys' => array(
+      'name' => array('name'),
+    ),
+  );
+  return $schema;
+}
+
+/**
+ * Add table for new feature - Save the whole shortcodes structure
+ */
+function nd_visualshortcodes_update_7000() {
+  drupal_install_schema('nd_visualshortcodes');
+}

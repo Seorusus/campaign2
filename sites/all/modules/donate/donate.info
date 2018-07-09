@@ -1,0 +1,5 @@
+name = donate
+description = donation module
+core = 7.x
+package = Alfateck
+configure = admin/config/donate

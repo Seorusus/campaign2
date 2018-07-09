@@ -1,0 +1,11 @@
+name = Paystack Donate
+description = A simple donate module through Paystack payment gateway.
+configure = admin/config/user-interface/paystack-donate
+core = 7.x
+files[] = paystack_donate.inc
+
+; Information added by Drupal.org packaging script on 2018-06-03
+version = "7.x-1.12"
+core = "7.x"
+project = "paystack_donate"
+datestamp = "1528007586"

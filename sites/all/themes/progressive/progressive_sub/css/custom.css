@@ -1,0 +1,39 @@
+@charset "UTF-8";
+/* Insert your custom CSS styles */
+.check
+{
+    opacity:0.5;
+	color:#996;
+}
+.box{
+    margin-bottom:5px;
+}
+
+ .nav-tabs li.disabled { color: grey; }
+ .nav-tabs li.disabled a:hover { border-color: transparent; }
+ 
+ .progress-percent {
+    position: relative;
+    top: -61px;
+    left: 13px;
+    color: black;
+}
+
+.car {
+    position: relative;
+    left: 244px;
+    color: #000;
+}
+
+.page-node-110 .btn-default {
+    display: none !important;
+}
+
+.backimg.content-block.frame {
+/*     background: #77b597;
+ */
+ background-image: url('http://vaultnoir.com/campaign2/sites/all/themes/progressive/img/bg-login.jpg');
+ }
+ .title-white{
+	 color:#000 !important;
+ }

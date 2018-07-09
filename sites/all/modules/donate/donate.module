@@ -1,0 +1,500 @@
+<?php
+set_time_limit(0);
+
+/*
+ * To change this license header, choose License Headers in Project Properties.
+ * To change this template file, choose Tools | Templates
+ * and open the template in the editor.
+ */
+define('DONATE_PATH', drupal_get_path('module', 'donate'));
+
+function donate_init() {
+    $setting['usd_to_nga'] = variable_get('donate_uds_to_nga', 1);
+    $setting['ppemail'] = variable_get('donate_pp_email', 1);
+    drupal_add_js($setting, 'setting');
+}
+
+function donate_menu() {
+    $items['cell/join'] = array(
+        'title' => t(''),
+        'page callback' => 'ajax_handling_function',
+        'access callback' => TRUE,
+            //'access arguments' => array('IIS Reports'),
+    );
+    $items['admin/config/donate'] = array(
+        'page callback' => 'drupal_get_form',
+        'page arguments' => array('donate_settings_form'),
+        'title' => "Donate settings",
+        'access arguments' => array('administer Donate'),
+    );
+	$items['ps/codegen'] = array(
+		'title' => 'Callback',
+		'type' => MENU_CALLBACK,
+        'page callback' => 'generate_ps_code',
+		'access arguments' => array('access content'),
+        'access callback' => TRUE,
+    );
+
+    return $items;
+}
+
+function generate_ps_code(){
+	$code = uniqid();
+	// $email = $_POST['email'];
+	$email = "uc@gmail.com";
+	// Insert Into Database
+	$o_exist = db_query("INSERT INTO `donate_codes` (`id`, `code`, `email`) VALUES (NULL, '".$code."', '".$email."')");
+	
+	echo $code;
+}
+
+function donate_permission() {
+    return array(
+        'administer Donate' => array(
+            'title' => t('administer Donate'),
+            'description' => t(''),
+        ),
+    );
+}
+
+function ajax_handling_function() {
+    switch ($_POST['ajaxFct']) {
+        case "virtualCell": echo json_encode(virtualCell());
+            exit;
+        case "physicalCell": echo json_encode(physicalCell());
+            exit;
+        case "joinCell": echo json_encode(joinCell());
+            exit;
+        case "sendDonateMail": echo json_encode(send_donate_mail());
+            exit;
+    }
+}
+
+function send_donate_mail() {
+    $params['body'] = $_REQUEST['sbody'];
+    $params['subject'] = 'Donate Information';
+    drupal_mail('donate', 'mymail', $_REQUEST['smail'], NULL, $params);
+    $return['status'] = "success";
+    return $return;
+}
+
+function donate_mail($key, &$message, $params) {
+     switch ($key) {
+        case 'mymail':
+            $message['subject'] = $params['subject'];
+            $message['body'][] = $params['body'];
+            $message['headers']['Content-Type'] = "text/plain; charset=iso-8859-1";
+            break;
+    }
+}
+
+function joinCell() { 
+    $return = array();
+    $info = getSidInfo($_REQUEST['sid']);
+    $return['echo'] = $_REQUEST;
+    $return['info'] = $info;
+
+    $cellMember = createCellMember($info);
+
+    if (!isset($_REQUEST['nid'])) {
+        $cell = createPCell($_REQUEST['cellName'], $info);
+        $isLeader = true;
+    } else {
+        $cell = $_REQUEST['nid'];
+        $isLeader = false;
+    }
+
+    connectMemberToCell($cellMember, $cell, $isLeader);
+    $return['cell'] = node_load($cell);
+    $return['status'] = "success";
+    return $return;
+}
+
+function createPCell($cellName, $info) {
+    $node = new stdClass();
+    $node->title = $cellName;
+    $node->type = "cell_physical";
+    node_object_prepare($node);
+    $node->uid = 1;
+    $node->status = 1;
+    $node->promote = 0;
+    $node->comment = 0;
+    $node->field_area['und'][0]['value'] = $info['local_government_area'];
+    $node->field_state['und'][0]['value'] = $info['state'];
+    $node->field_ward['und'][0]['value'] = $info['ward'];
+    node_save($node);
+    return $node->nid;
+}
+
+function createVCell($cellName) {
+    $node = new stdClass();
+    $node->title = $cellName;
+    $node->type = "cell";
+    node_object_prepare($node);
+    $node->uid = 1;
+    $node->status = 1;
+    $node->promote = 0;
+    $node->comment = 0;
+    node_save($node);
+    return $node->nid;
+}
+
+function connectMemberToCell($node, $nid, $isLeader) {
+    $cell = node_load($nid);
+    $cell->field_cell_members['und'][]['nid'] = $node->nid;
+    if ($isLeader) {
+        $cell->field_cell_leader['und'][]['nid'] = $node->nid;
+    }
+    node_save($cell);
+}
+
+function createCellMember($info) {
+    $node = new stdClass();
+    $node->title = $info['first_name'];
+    $node->type = "cell_member";
+    node_object_prepare($node);
+    $node->uid = 1;
+    $node->status = 1;
+    $node->promote = 0;
+    $node->comment = 0;
+    $node->field_last_name['und'][0]['value'] = $info['last_name'];
+    $node->field_gender['und'][0]['value'] = $info['gender'];
+    $node->field_mobile_number['und'][0]['value'] = $info['phone'];
+    $node->field_email['und'][0]['value'] = $info['email'];
+    node_save($node);
+    return $node;
+}
+
+function physicalCell() {
+    $return = array();
+    $info = getSidInfo($_REQUEST['sid']);
+    $nodeQuery = new EntityFieldQuery();
+    $entities = $nodeQuery->entityCondition('entity_type', 'node')
+            ->entityCondition('bundle', 'cell_physical')
+            ->fieldCondition('field_ward', 'value', $info['ward'], '=')
+            ->execute();
+    foreach ($entities['node'] as $k => $entity) {
+        $nodes[] = node_load($k);
+    }
+    $return['cells'] = $nodes;
+    $return['status'] = 'success';
+    return $return;
+}
+
+function getSidInfo($sid) {
+    $info = array();
+    $sql = "SELECT wsd.data, wc.form_key FROM `webform_submitted_data` wsd left join webform_component wc on wc.cid = wsd.cid "
+            . "where wsd.nid=1 and wsd.sid=" . $sid;
+    $infoAr = db_query($sql)->fetchAll();
+    foreach ($infoAr as $i) {
+        $info[$i->form_key] = $i->data;
+    }
+    return $info;
+}
+
+function virtualCell() {
+    $info = getSidInfo($_REQUEST['sid']);
+    $cell1 = db_query("SELECT nid FROM `node` where type='cell'  order by nid desc limit 1")->fetchAll();
+    $cell = node_load($cell1[0]->nid);
+    $cellMember = createCellMember($info);
+    if (count($cell->field_cell_member[$cell->language]) < 20) {
+        $cnid = $cell->nid;
+    } else {
+        $cnid = createVCell($info["first_name"]);
+    }
+    $cell->field_cell_members['und'][]['nid'] = $cellMember->nid;
+    $return['status'] = "success";
+    node_save($cell);
+    return $return;
+}
+
+function donate_settings_form() {
+    $form = array();
+    $form['donate_uds_to_nga'] = array(
+        '#type' => 'textfield',
+        '#title' => t('NGA to USD'),
+        '#default_value' => variable_get('donate_uds_to_nga', 1),
+    );
+    $form['donate_bank_info'] = array(
+        '#type' => 'textarea',
+        '#title' => t('Bank information'),
+        '#default_value' => variable_get('donate_bank_info', ""),
+    );
+    $form['donate_t1'] = array(
+        '#type' => 'textarea',
+        '#title' => t('Donate page text 1'),
+        '#default_value' => variable_get('donate_t1', "Donate to the"),
+    );
+
+    $form['donate_t2'] = array(
+        '#type' => 'textarea',
+        '#title' => t('Donate page text 2'),
+        '#default_value' => variable_get('donate_t2', "youth advocacy program"),
+    );
+    $form['donate_t3'] = array(
+        '#type' => 'textarea',
+        '#title' => t('Donate page text 3'),
+        '#default_value' => variable_get('donate_t3', "make a donation to suport the campaign"),
+    );
+    $form['donate_pp_email'] = array(
+        '#type' => 'textfield',
+        '#title' => t('Paypal email'),
+        '#default_value' => variable_get('donate_pp_email', ""),
+    );
+    return system_settings_form($form);
+}
+
+function donate_block_info() {
+    $blocks = array();
+    $blocks['donate'] = array('info' => t('Donate'));
+    $blocks['share'] = array('info' => t('Share'));
+    $blocks['cell'] = array('info' => t('Cell'));
+    return $blocks;
+}
+
+function donate_block_view($delta = '') {
+    if ($delta == 'donate') {
+        drupal_add_js(DONATE_PATH . '/donate.js', array('group' => JS_DEFAULT, 'type' => 'file'));
+		drupal_add_js('https://js.paystack.co/v1/inline.js', 'external');
+        $blocks['title'] = '';
+        $name = '';
+        $binfo = variable_get("donate_bank_info", "");
+		if (user_is_logged_in()) {
+			global $user; 
+			$email = $user->mail;
+		}
+		else{
+			$email = "";
+		}
+        if (arg(1) && is_numeric(arg(1))) {
+            $nodeFor = node_load(arg(1));
+            $name = $nodeFor->field_title['und'][0]['value'] . ' ' . $nodeFor->title . ' ' . $nodeFor->field_last_name['und'][0]['value'];
+            if (isset($nodeFor->field_financial_info['und']) && $nodeFor->field_financial_info['und'][0]['value'] != "") {
+                $binfo = $nodeFor->field_financial_info['und'][0]['value'];
+            }
+        }
+        $binfo = str_replace("\n", "<br/>", $binfo);
+        $blocks['content'] = '
+<div  id="payTabs" class = "tabs ">
+    <ul class = "nav nav-tabs ">
+<li  class = "active"><a href = "#tab-10" data-toggle = "tab" class="step1l">Step <span id = "stepno">1</span></a></li>
+</ul>
+    <div class = "tab-content">
+	  <div class="tab-pane fade  active in step1tab" id="tab-10">
+	    <div class="step1">
+          <div  class = "text-small features-block">
+			<a class = "header-box" href = "" >
+			<h6 >Amount Donation to NAME_PERSON - ₦<span id = "amount2"></span></button></h6>        
+			</a>
+        <div>
+		<div class="alert  fade in grey step1error" style="display:none"><i class="fa fa-volume-up alert-icon"></i>
+			<p>Please Select An Amount before going to the next Step.</p>
+		</div>
+<div class="selectAmt">          
+Select an amount
+
+<a  class = "btn-success btn btn-border" href = "javascript:Drupal.behaviors.donate.setAmount(500,this,\'500\');">
+₦500</a>
+<a  class = "btn-success btn btn-border" href = "javascript:Drupal.behaviors.donate.setAmount(1000,this,\'1,000\');">
+₦1,000</a>
+<a  class = "btn-success btn btn-border" href = "javascript:Drupal.behaviors.donate.setAmount(1500,this,\'1,500\'); ">
+₦1,500</a>
+<a  class = "btn-success btn btn-border" href = "javascript:Drupal.behaviors.donate.setAmount(2000,this,\'2,000\');">
+₦2,000</a>
+<a  class = "btn-success btn btn-border" href = "javascript:Drupal.behaviors.donate.setAmount(5000,this,\'5,000\');">
+₦5,000</a>
+<a  class = "btn-success btn btn-border" href = "javascript:Drupal.behaviors.donate.setAmount(10000,this,\'10,000\');">
+₦10,000</a>
+<a  class = "btn-success btn btn-border" href = "javascript:Drupal.behaviors.donate.setAmount(50000,this,\'50,000\');">
+₦50,000</a> 
+<input type="number" class="form-control" id="other" placeholder="Other Amount" onChange = "Drupal.behaviors.donate.setAmount(0,this)"/>
+</div>
+        </div>
+      </div>
+<button class="btn btn-default btn-sm" type="button" href="javascript:;" id="other-next" onclick="Drupal.behaviors.donate.showStep2()">Next</button>
+</div><!-- step1 -->
+
+<div class="step2" style="display:none">
+	<div  class = "text-small features-block">
+        <a class = "header-box" href = "" >
+        <h6 >Email Address</h6>        
+        </a>
+        <div>
+		<div class="alert  fade in grey step2error" style="display:none"><i class="fa fa-volume-up alert-icon"></i>
+			<p>Enter a proper Email Address to go to the next Step.</p>
+		</div>
+          <input type="email"  required id="donate_email" class="form-control" value="' . $email . '">
+		</div>
+     </div>
+<button class="btn btn-default btn-sm" type="button" href="javascript:;" id="other-back" onclick="Drupal.behaviors.donate.showStep1()">Back</button>&nbsp;&nbsp;&nbsp;&nbsp;
+<button class="btn btn-default btn-sm" type="button" href="javascript:;" id="other-next" onclick="Drupal.behaviors.donate.showStep3()">Next</button>
+</div><!-- step2 -->
+
+<div class="step3" style="display:none">
+    <div  class = "text-small features-block">
+        <a class = "header-box" href = "" >
+        <h6 >Payment Options</h6>        
+        </a>
+        <div >
+			<label class="radio-inline">
+				<input type="radio" name="donate_radio" value="pp">PayPal
+			</label>
+			<label class="radio-inline">
+				<input type="radio" name="donate_radio" value="ps">PayStack
+			</label>
+			<label class="radio-inline">
+				<input type="radio" name="donate_radio" value="bank">Bank 
+			</label>
+		</div>
+	</div>
+<button class="btn btn-default btn-sm" type="button" href="javascript:;" id="other-back1" onclick="Drupal.behaviors.donate.showStep2()">Back</button>&nbsp;&nbsp;&nbsp;&nbsp;
+<button a href = "javascript:;" onclick = "Drupal.behaviors.donate.completeDonation()" class="btn btn-default btn-sm" type="button">Donate ₦<span id = "amount3"></span></button>
+</div><!-- step3 -->
+
+<div class="step stepBank" style="display:none">
+        ';
+        $blocks['content'] .= $binfo;
+        $blocks['content'] .= ' 
+</div>
+
+</div><!-- TAB END -->
+</div></div>
+            ';
+    }
+    return $blocks;
+}
+
+function donate_theme() {
+    return array(
+        'campaign_node_form' => array(
+            'arguments' => array('form' => NULL),
+            'template' => 'campaign_node_form',
+            'render element' => 'form',
+            'path' => DONATE_PATH . '/templates',
+        ),
+    );
+}
+
+function donate_form_alter(&$form, $form_state, $form_id) {
+    if ($form_id == "campaign_node_form") {
+        $form['#theme'][] = "campaign_node_form";
+    } else if ($form_id == "cell_node_form") {
+        $form['#attached']['js'] = array(
+            drupal_get_path('module', 'donate') . '/saw.js',
+        );
+    } else if ($form_id == "cell_physical_node_form") {
+        $form['#attached']['js'] = array(
+            drupal_get_path('module', 'donate') . '/saw.js',
+        );
+    }
+}
+
+function donate_webform_select_options_info() {
+    $items = array();
+    $items['states'] = array(
+        'title' => t('Nigerian states'),
+        'options callback' => 'webform_options_states',
+    );
+    $items['lga'] = array(
+        'title' => t('Nigerian lga'),
+        'options callback' => 'webform_options_lga',
+    );
+    $items['wards'] = array(
+        'title' => t('Nigerian ward'),
+        'options callback' => 'webform_options_wards',
+    );
+    return $items;
+}
+
+function webform_options_states() {
+    $q = db_query("SELECT distinct state_name FROM `nigeria_voting`")->fetchAll();
+    $countries = array();
+    foreach ($q as $s) {
+        $countries[strtoupper(str_replace(array(" ", ".", "'"), "", $s->state_name))] = $s->state_name;
+    }
+    return $countries;
+}
+
+function webform_options_lga() {
+    $q = db_query("SELECT distinct lga_name, state_name FROM `nigeria_voting`")->fetchAll();
+    $countries = array();
+    foreach ($q as $s) {
+        $countries[strtoupper(str_replace(array(" ", ".", "'"), "", $s->state_name . $s->lga_name))] = $s->lga_name;
+    }
+    return $countries;
+}
+
+function webform_options_wards() {
+    $q = db_query("SELECT distinct ward_name,lga_name, state_name FROM `nigeria_voting`")->fetchAll();
+    $countries = array();
+    foreach ($q as $s) {
+        $countries[strtoupper(str_replace(array(" ", ".", "'", "/", "-", "\""), "", preg_replace('/[^A-Za-z0-9\. -]/', '', $s->state_name . $s->lga_name . $s->ward_name)))] = str_replace(array(".", "'", "/", "-", "\""), "", preg_replace('/[^A-Za-z0-9\. -]/', '', $s->ward_name));
+    }
+    return $countries;
+}
+
+function donate_user_login(&$edit, $account) {
+    if (!isset($_POST['form_id']) || $_POST['form_id'] != 'user_pass_reset') {
+        if (in_array('authenticated user', $account->roles)) {
+            $nodeQuery = new EntityFieldQuery();
+            global $user;
+            $entities = $nodeQuery->entityCondition('entity_type', 'node')
+                    ->entityCondition('bundle', 'campaign')
+                    ->propertyCondition('uid', $user->uid)
+                    ->execute();
+            if (empty($entities['node'])) {
+                $_GET['destination'] = 'create-campaign';
+            } else {
+                foreach ($entities['node'] as $n => $v) {
+                    $nid = $n;
+                }
+                $_GET['destination'] = 'node/' . $nid . '/edit';
+            }
+        }
+    }
+}
+
+function donate_list_option_info() {
+    $info['cats'] = array(
+        'label' => t('Types of cats'),
+        'callback' => 'mymodule_list_option_cats',
+    );
+
+    $info['dogs'] = array(
+        'label' => t('Types of dogs'),
+        'callback' => 'mymodule_list_option_dogs',
+    );
+    $info['states'] = array(
+        'label' => t('Nigerian states'),
+        'callback' => 'webform_options_states',
+    );
+
+    $info['states'] = array(
+        'label' => t('Nigerian lga'),
+        'callback' => 'webform_options_lga',
+    );
+    $info['wards'] = array(
+        'label' => t('Nigerian ward'),
+        'callback' => 'webform_options_wards',
+    );
+    return $info;
+}
+
+function donate_views_rss_item_elements() {
+    $fields = field_info_instances("node", "campaign");
+    foreach ($fields as $key => $field) {
+        $elements['campaign:' . $key] = array(
+            'title' => $field['label'],
+            'description' => $field['description'],
+        );
+    }
+    return $elements;
+}
+
+function donate_views_rss_namespaces() {
+    $namespaces['campaign'] = array(
+        'prefix' => 'xmlns',
+        'uri' => 'http://campaign.ng/ns/1.0',
+    );
+    return $namespaces;
+}

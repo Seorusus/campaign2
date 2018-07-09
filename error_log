@@ -1,0 +1,54 @@
+[06-Jul-2018 19:59:28 Europe/Helsinki] PHP Parse error:  syntax error, unexpected end of file in /home/vault/public_html/campaign2/sites/all/themes/progressive/templates/views-view-fields--Aspirants--block-2.tpl.php on line 32
+[06-Jul-2018 19:59:28 Europe/Helsinki] PHP Parse error:  syntax error, unexpected end of file in /home/vault/public_html/campaign2/sites/all/themes/progressive/templates/views-view-fields--Aspirants--block-2.tpl.php on line 32
+[06-Jul-2018 19:59:29 Europe/Helsinki] PHP Parse error:  syntax error, unexpected end of file in /home/vault/public_html/campaign2/sites/all/themes/progressive/templates/views-view-fields--Aspirants--block-2.tpl.php on line 32
+[06-Jul-2018 19:59:29 Europe/Helsinki] PHP Parse error:  syntax error, unexpected end of file in /home/vault/public_html/campaign2/sites/all/themes/progressive/templates/views-view-fields--Aspirants--block-2.tpl.php on line 32
+[06-Jul-2018 19:59:29 Europe/Helsinki] PHP Parse error:  syntax error, unexpected end of file in /home/vault/public_html/campaign2/sites/all/themes/progressive/templates/views-view-fields--Aspirants--block-2.tpl.php on line 32
+[06-Jul-2018 20:00:52 Europe/Helsinki] PHP Parse error:  syntax error, unexpected end of file in /home/vault/public_html/campaign2/sites/all/themes/progressive/templates/views-view-fields--Aspirants--block-2.tpl.php on line 31
+[06-Jul-2018 20:14:19 Europe/Helsinki] PHP Fatal error:  Cannot use object of type stdClass as array in /home/vault/public_html/campaign2/sites/all/themes/progressive/templates/views-view-fields--Aspirants--block-2.tpl.php on line 37
+[06-Jul-2018 20:14:56 Europe/Helsinki] PHP Fatal error:  Cannot use object of type stdClass as array in /home/vault/public_html/campaign2/sites/all/themes/progressive/templates/views-view-fields--Aspirants--block-2.tpl.php on line 37
+[06-Jul-2018 20:15:01 Europe/Helsinki] PHP Fatal error:  Cannot use object of type stdClass as array in /home/vault/public_html/campaign2/sites/all/themes/progressive/templates/views-view-fields--Aspirants--block-2.tpl.php on line 37
+[06-Jul-2018 20:18:49 Europe/Helsinki] PHP Fatal error:  Uncaught exception 'PDOException' with message 'SQLSTATE[HY000]: General error: 2006 MySQL server has gone away' in /home/vault/public_html/campaign2/includes/database/database.inc:2227
+Stack trace:
+#0 /home/vault/public_html/campaign2/includes/database/database.inc(2227): PDOStatement->execute(Array)
+#1 /home/vault/public_html/campaign2/includes/database/database.inc(697): DatabaseStatementBase->execute(Array, Array)
+#2 /home/vault/public_html/campaign2/includes/database/database.inc(2406): DatabaseConnection->query('SELECT expire, ...', Array, Array)
+#3 /home/vault/public_html/campaign2/includes/lock.inc(167): db_query('SELECT expire, ...', Array)
+#4 /home/vault/public_html/campaign2/includes/lock.inc(146): lock_may_be_available('theme_registry:...')
+#5 /home/vault/public_html/campaign2/includes/theme.inc(449): lock_acquire('theme_registry:...')
+#6 /home/vault/public_html/campaign2/includes/bootstrap.inc(460): ThemeRegistry->set(Array)
+#7 [internal function]: DrupalCacheArray->__destruct()
+#8 {main}
+  throw in /home/vault/public_html/campaign2/includes/database/database.inc on line 2227
+[06-Jul-2018 20:55:37 Europe/Helsinki] PHP Fatal error:  Cannot use object of type stdClass as array in /home/vault/public_html/campaign2/sites/all/themes/progressive/templates/views-view-fields--Aspirants--block-2.tpl.php on line 39
+[06-Jul-2018 20:56:05 Europe/Helsinki] PHP Fatal error:  Cannot use object of type stdClass as array in /home/vault/public_html/campaign2/sites/all/themes/progressive/templates/views-view-fields--Aspirants--block-2.tpl.php on line 39
+[06-Jul-2018 20:56:09 Europe/Helsinki] PHP Fatal error:  Cannot use object of type stdClass as array in /home/vault/public_html/campaign2/sites/all/themes/progressive/templates/views-view-fields--Aspirants--block-2.tpl.php on line 39
+[06-Jul-2018 20:56:10 Europe/Helsinki] PHP Fatal error:  Cannot use object of type stdClass as array in /home/vault/public_html/campaign2/sites/all/themes/progressive/templates/views-view-fields--Aspirants--block-2.tpl.php on line 39
+[06-Jul-2018 20:56:10 Europe/Helsinki] PHP Fatal error:  Cannot use object of type stdClass as array in /home/vault/public_html/campaign2/sites/all/themes/progressive/templates/views-view-fields--Aspirants--block-2.tpl.php on line 39
+[07-Jul-2018 09:17:21 Europe/Helsinki] PHP Fatal error:  Cannot use object of type stdClass as array in /home/vault/public_html/campaign2/sites/all/themes/progressive/templates/views-view-fields--Aspirants--block-2.tpl.php on line 37
+[07-Jul-2018 09:23:44 Europe/Helsinki] PHP Fatal error:  Cannot use object of type stdClass as array in /home/vault/public_html/campaign2/sites/all/themes/progressive/templates/views-view-fields--Aspirants--block-2.tpl.php on line 37
+[07-Jul-2018 09:24:42 Europe/Helsinki] PHP Fatal error:  Cannot use object of type stdClass as array in /home/vault/public_html/campaign2/sites/all/themes/progressive/templates/views-view-fields--Aspirants--block-2.tpl.php on line 37
+[07-Jul-2018 09:24:49 Europe/Helsinki] PHP Fatal error:  Cannot use object of type stdClass as array in /home/vault/public_html/campaign2/sites/all/themes/progressive/templates/views-view-fields--Aspirants--block-2.tpl.php on line 37
+[07-Jul-2018 09:25:08 Europe/Helsinki] PHP Parse error:  syntax error, unexpected '[', expecting identifier (T_STRING) or variable (T_VARIABLE) or '{' or '$' in /home/vault/public_html/campaign2/sites/all/themes/progressive/templates/views-view-fields--Aspirants--block-2.tpl.php on line 37
+[07-Jul-2018 09:29:41 Europe/Helsinki] PHP Parse error:  syntax error, unexpected ';' in /home/vault/public_html/campaign2/sites/all/themes/progressive/templates/views-view-fields--Aspirants--block-2.tpl.php on line 37
+[07-Jul-2018 09:30:03 Europe/Helsinki] PHP Fatal error:  Cannot use object of type stdClass as array in /home/vault/public_html/campaign2/sites/all/themes/progressive/templates/views-view-fields--Aspirants--block-2.tpl.php on line 37
+[07-Jul-2018 09:43:27 Europe/Helsinki] PHP Parse error:  syntax error, unexpected '[', expecting identifier (T_STRING) or variable (T_VARIABLE) or '{' or '$' in /home/vault/public_html/campaign2/sites/all/themes/progressive/templates/views-view-fields--Aspirants--block-2.tpl.php on line 37
+[07-Jul-2018 09:44:12 Europe/Helsinki] PHP Parse error:  syntax error, unexpected '[', expecting identifier (T_STRING) or variable (T_VARIABLE) or '{' or '$' in /home/vault/public_html/campaign2/sites/all/themes/progressive/templates/views-view-fields--Aspirants--block-2.tpl.php on line 37
+[07-Jul-2018 09:45:56 Europe/Helsinki] PHP Parse error:  syntax error, unexpected '0' (T_LNUMBER), expecting identifier (T_STRING) or variable (T_VARIABLE) or '{' or '$' in /home/vault/public_html/campaign2/sites/all/themes/progressive/templates/views-view-fields--Aspirants--block-2.tpl.php on line 37
+[07-Jul-2018 09:51:49 Europe/Helsinki] PHP Parse error:  syntax error, unexpected '[', expecting identifier (T_STRING) or variable (T_VARIABLE) or '{' or '$' in /home/vault/public_html/campaign2/sites/all/themes/progressive/templates/views-view-fields--Aspirants--block-2.tpl.php on line 37
+[07-Jul-2018 09:54:49 Europe/Helsinki] PHP Parse error:  syntax error, unexpected '[', expecting identifier (T_STRING) or variable (T_VARIABLE) or '{' or '$' in /home/vault/public_html/campaign2/sites/all/themes/progressive/templates/views-view-fields--Aspirants--block-2.tpl.php on line 37
+[07-Jul-2018 09:55:10 Europe/Helsinki] PHP Parse error:  syntax error, unexpected '[', expecting identifier (T_STRING) or variable (T_VARIABLE) or '{' or '$' in /home/vault/public_html/campaign2/sites/all/themes/progressive/templates/views-view-fields--Aspirants--block-2.tpl.php on line 37
+[07-Jul-2018 10:09:24 Europe/Helsinki] PHP Fatal error:  Uncaught exception 'PDOException' with message 'SQLSTATE[HY000]: General error: 2006 MySQL server has gone away' in /home/vault/public_html/campaign2/includes/database/database.inc:2227
+Stack trace:
+#0 /home/vault/public_html/campaign2/includes/database/database.inc(2227): PDOStatement->execute(Array)
+#1 /home/vault/public_html/campaign2/includes/database/database.inc(697): DatabaseStatementBase->execute(Array, Array)
+#2 /home/vault/public_html/campaign2/includes/database/database.inc(2406): DatabaseConnection->query('SELECT expire, ...', Array, Array)
+#3 /home/vault/public_html/campaign2/includes/lock.inc(167): db_query('SELECT expire, ...', Array)
+#4 /home/vault/public_html/campaign2/includes/lock.inc(146): lock_may_be_available('theme_registry:...')
+#5 /home/vault/public_html/campaign2/includes/theme.inc(449): lock_acquire('theme_registry:...')
+#6 /home/vault/public_html/campaign2/includes/bootstrap.inc(460): ThemeRegistry->set(Array)
+#7 [internal function]: DrupalCacheArray->__destruct()
+#8 {main}
+  throw in /home/vault/public_html/campaign2/includes/database/database.inc on line 2227
+[07-Jul-2018 12:42:33 Europe/Helsinki] PHP Parse error:  syntax error, unexpected 'tabs' (T_STRING) in /home/vault/public_html/campaign2/sites/all/modules/donate/donate.module on line 254
+[09-Jul-2018 21:46:25 Europe/Helsinki] PHP Parse error:  syntax error, unexpected 'generate_ps_code' (T_STRING) in /home/vault/public_html/campaign2/sites/all/modules/donate/donate.module on line 38
+[09-Jul-2018 23:06:31 Europe/Helsinki] PHP Parse error:  syntax error, unexpected end of file in /home/vault/public_html/campaign2/sites/all/modules/donate/donate.module on line 189

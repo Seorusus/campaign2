@@ -1,0 +1,179 @@
+<?php
+
+function uc_paystack_menu() {
+  $items['cart/paystack/complete'] = array(
+    'title' => 'Order complete',
+    'page callback' => 'uc_paystack_complete',
+    'access arguments' => array('access content'),
+    'type' => MENU_CALLBACK,
+    'file' => 'uc_paystack.pages.inc',
+  );
+    return $items;
+}
+function uc_paystack_uc_payment_gateway() {
+  $gateways['uc_paystack'] = array(
+    'title' => t('Paystack'),
+    'description' => t('Process payments through Paystack'),
+  );
+  return $gateways;
+}
+function uc_paystack_uc_payment_method() {
+  $title = t('Paystack (Debit & Credit Cards):');
+  $title .= ' ' . theme('image', array(
+    'path' => drupal_get_path('module', 'uc_paystack') . '/paystack.png',
+    'alt' => 'Pay with Paystack',
+    'attributes' => array('class' => array('uc-credit-cctype', 'uc-credit-cctype-paystack')),
+  ));
+  $methods[] = array(
+    'id' => 'paystack',
+    'name' => t('Paystack'),
+    'title' =>$title,
+    'desc' => t('Pay through my paystack'),
+    'callback' => 'uc_paystack_method',
+    'redirect' => 'uc_paystack_form',
+    'weight' => 1,
+    'checkout' => TRUE,
+  );
+
+  return $methods;
+}
+function uc_paystack_method($op, &$order) {
+  switch ($op) {
+    case 'settings':
+      $form['test_publickey'] = array(
+        '#type' => 'textfield',
+        '#title' => t('Test Public Key'),
+        '#description' => t('Test Public Key'),
+        '#default_value' => variable_get('test_publickey'),
+      );
+      $form['test_secretkey'] = array(
+        '#type' => 'textfield',
+        '#title' => t('Test Secret Key'),
+        '#description' => t('Test Public Key'),
+        '#default_value' => variable_get('test_secretkey'),
+      );
+      $form['live_publickey'] = array(
+        '#type' => 'textfield',
+        '#title' => t('Live Public Key'),
+        '#description' => t('Live Public Key'),
+        '#default_value' => variable_get('live_publickey'),
+      );
+      $form['live_secretkey'] = array(
+        '#type' => 'textfield',
+        '#title' => t('Live Secret Key'),
+        '#description' => t('Live Secret Key'),
+        '#default_value' => variable_get('live_secretkey'),
+      );
+      $form['paystack_mode'] = array(
+        '#type' => 'radios',
+        '#title' => t('Annotations will be deleted'),
+        '#description' => t('Select a method for deleting annotations.'),
+        '#default_value' => variable_get('paystack_mode'),
+        '#options' => array(
+           'live' => t('Live'),
+          'test' => t('Test')
+          )
+      );
+      return $form;
+  }
+}
+
+function uc_paystack_form($form, &$form_state, $order) {
+
+  $form['#theme_wrappers'] = array();
+  $time = time();
+  $order_id = $order->order_id;
+  $order_total = number_format($order->order_total, 2, '.', '');
+  $customer_email = $order->primary_email;
+  $cart_id = uc_cart_get_id();
+
+  function getBaseUrl(){
+    $currentPath = $_SERVER['PHP_SELF'];
+    $pathInfo = pathinfo($currentPath);
+    $hostName = $_SERVER['HTTP_HOST'];
+    $protocol = strtolower(substr($_SERVER["SERVER_PROTOCOL"],0,5))=='https://'?'https://':'http://';
+    return $protocol.$hostName.$pathInfo['dirname']."/";
+  }
+  ////
+  function generate_new_code($length = 10){
+    $characters = 'RSTUVW01234ABCDEFGHIJ56789KLMNOPQXYZ';
+    $charactersLength = strlen($characters);
+    $randomString = '';
+    for ($i = 0; $i < $length; $i++) {
+        $randomString .= $characters[rand(0, $charactersLength - 1)];
+    }
+    return $randomString;
+  }
+  function check_code($code){
+      $o_exist = db_query("SELECT * FROM `uc_payment_paystack_codes` WHERE `code` = '".$code."'")->fetchAll();
+
+      if (count($o_exist) > 0) {
+          $result = true;
+      } else {
+          $result = false;
+      }
+
+      return $result;
+  }
+  function generate_code(){
+      $code = 0;
+      $check = true;
+
+      while ($check) {
+          $code = generate_new_code();
+          $check = check_code($code);
+      }
+
+      return $code;
+  }
+
+  $data = array(
+    'timestamp' => time(),
+    'order_id' => $order->order_id,
+    'order_total' => number_format($order->order_total, 2, '.', ''),
+    'customer_email' => $order->primary_email,
+    'cart_id' => uc_cart_get_id(),
+  );
+
+  function getPaystackcode($order_id,$email){
+    $o_exist = db_query("SELECT * FROM `uc_payment_paystack_codes` WHERE `order_id` = '".$order_id."'")->fetchAll();
+    if (count($o_exist) === 0) {
+      $code = generate_code();
+      $o_exist = db_query("INSERT INTO `uc_payment_paystack_codes` (`code_id`, `order_id`, `code`, `email`) VALUES (NULL, '".$order_id."', '".$code."', '".$email."')");
+
+    } else {
+      $code = $o_exist[0]->code;
+    }
+
+    return $code;
+  }
+  $pcode = getPaystackcode($order_id,$order->primary_email);
+
+  // $actionurl  = getBaseUrl().'/cart/paystack/complete';
+  $actionurl  = '/cart/paystack/complete';
+// die('eddd'.getBaseUrl());
+  $test = variable_get ('test_publickey', '');
+  $live = variable_get ('live_publickey', '');
+  $mode = variable_get ('paystack_mode', '');
+  // die($key.'ssss');
+  if ($mode == 'test') {
+    $key = $test;
+  }else{
+    $key = $live;
+  }
+  // echo '<pre>';
+  // die(print_r($order = uc_order_load($order_id)));
+	$form['some_text'] = array(
+	  '#markup' => '<form accept-charset="UTF-8" id="uc-paystack-form" method="post" action="'.$actionurl.'">
+    <input type="hidden" value="'.$data['timestamp'].'" name="timestamp">
+    <input type="hidden" value="'.$data['order_id'].'" name="order_id">
+    <input type="hidden" value="'.$order->order_total.'" name="order_total">
+    <input type="hidden" value="'.$data['customer_email'].'" name="customer_email">
+    <input type="hidden" value="'.$data['cart_id'].'" name="cart_id">
+    <input type="hidden" value="'.$pcode.'" name="code">
+    <input type="hidden" value="uc_paystack_form" name="form_id">
+    <script data-ref="'.$pcode.'" data-amount="'.($data['order_total'] * 100).'" data-email="'.$order->primary_email.'" data-key="'.$key.'" src="https://js.paystack.co/v1/inline.js">
+	    </script></form>'
+	);
+  return $form;
+}
